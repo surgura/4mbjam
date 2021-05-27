@@ -10,10 +10,10 @@
 namespace Mb4
 {
 
-#ifdef MB4_PREPROCESSOR_DEBUG
-    constexpr static bool MB4_DEBUG = true;
-#else
+#ifdef NDEBUG
     constexpr static bool MB4_DEBUG = false;
+#else
+    constexpr static bool MB4_DEBUG = true;
 #endif
 
 using AssertError = std::runtime_error;

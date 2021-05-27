@@ -59,9 +59,6 @@ find_package(Glm REQUIRED)
 
 add_executable(4mbjam ${SRC_FILES} ${HEADER_FILES} ${SHADER_FILES})
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-  target_compile_definitions(4mbjam PRIVATE MB4_PREPROCESSOR_DEBUG)
-endif()
 
 set_property(TARGET 4mbjam PROPERTY CXX_STANDARD 20)
 target_link_libraries(4mbjam PRIVATE raylib)
