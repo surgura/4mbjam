@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -11,41 +12,23 @@
 namespace LSystem
 {
 
-	struct Rule;
-	struct Instruction;
+	struct InstructionData;
 
-	struct RuleReference
+	struct Instruction
 	{
+		InstructionData* data;
 		glm::mat4 transform{ 1 };
-		std::weak_ptr<Rule> rule;
+		bool is_recursion = false;
 	};
 
 	struct InstructionData
 	{
 		glm::mat4 transform{ 1 };
-		std::vector<std::unique_ptr<Instruction>> children;
-		std::vector<RuleReference> next_rules;
-		bool visible = true;
-		bool connect_vertices = true;
-		int sides = 1; // 1 or less is line, 2 is plane, 3+ cylinder
+		std::vector<Instruction*> children;
+		bool draw_branch = true;
+		bool connect_branch_vertices = true;
+		int branch_sides = 1; // In case of 1, a line will be drawn.
+		std::optional<glm::vec3> branch_color;
 	};
-
-	struct Instruction
-	{
-		glm::mat4 transform{ 1 };
-		InstructionData data;
-	};
-
-	struct Rule
-	{
-		std::string id;
-		InstructionData data;
-	};
-
-	std::vector<std::unique_ptr<Instruction>> CreateFork(int count, float length, float roll = 0, float pitch = glm::quarter_pi<float>(), float yaw = 0);
-
-	std::vector<std::unique_ptr<Instruction>> CreateExtrusion(float length, float roll = 0, float pitch = 0, float yaw = 0);
-
-	std::vector<RuleReference> CreateRecursion(const std::shared_ptr<Rule>& rule, float roll = 0, float pitch = 0, float yaw = 0);
 
 }
