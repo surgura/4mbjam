@@ -5,25 +5,21 @@
 
 #include <cereal/access.hpp>
 
-
-
 namespace LSystem
 {
 
-	struct Parameter
-	{
-		Parameter(std::string_view name);
+struct Parameter
+{
+	Parameter(std::string_view name);
 
-		virtual ~Parameter() = 0 { }
-		
-		const std::string& Name() const;
+	virtual ~Parameter() = 0;
 
-	protected:
+	const std::string& Name() const;
 
-		Parameter() = default;
+protected:
+	Parameter() = default;
 
-		std::string m_name;
+	std::string m_name;
+};
 
-    };
-
-}
+} // namespace LSystem

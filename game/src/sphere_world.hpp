@@ -1,9 +1,9 @@
 #pragma once
 
 #include "types.hpp"
-#include <vector>
 #include <glm/glm.hpp>
 #include <raylib.h>
+#include <vector>
 
 namespace Mb4
 {
@@ -20,13 +20,17 @@ public:
 
 		Triangle(u32 const index1, u32 const index2, u32 const index3);
 	};
+
 private:
 	SphereWorld(std::tuple<std::vector<glm::fvec3>, std::vector<Triangle>>);
 
 	/* Create a geodesic octahedron by subdividing the triangles of a tetrahedron */
-	std::tuple<std::vector<glm::fvec3>, std::vector<Triangle>> CreateGeodesicPolyhedron(u32 divisions);
+	std::tuple<std::vector<glm::fvec3>, std::vector<Triangle>>
+	CreateGeodesicPolyhedron(u32 divisions);
 
-	std::tuple<std::vector<glm::fvec3>, std::vector<Triangle>> SubDivide(std::vector<glm::fvec3> const& points, std::vector<Triangle> const& triangles);
+	std::tuple<std::vector<glm::fvec3>, std::vector<Triangle>>
+	SubDivide(std::vector<glm::fvec3> const& points, std::vector<Triangle> const& triangles);
+
 public:
 	std::vector<glm::fvec3> const points;
 	std::vector<Triangle> const triangles;
@@ -40,4 +44,4 @@ public:
 	glm::fvec3 GetNormal(glm::fvec3 const& position) const;
 };
 
-}
+} // namespace Mb4

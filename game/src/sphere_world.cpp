@@ -1,12 +1,12 @@
 #include "sphere_world.hpp"
+#include "debug.hpp"
 #include <cmath>
 #include <glm/glm.hpp>
-#include "debug.hpp"
-#include <string>
 #include <map>
+#include <string>
 
-#include <glm/gtc/noise.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtc/noise.hpp>
 
 using namespace Mb4;
 
@@ -14,18 +14,18 @@ SphereWorld::Triangle::Triangle(u32 const index1, u32 const index2, u32 const in
 	index1(index1),
 	index2(index2),
 	index3(index3)
-{}
+{ }
 
-SphereWorld::SphereWorld(u32 divisions) :
-	SphereWorld(CreateGeodesicPolyhedron(divisions))
-{}
+SphereWorld::SphereWorld(u32 divisions) : SphereWorld(CreateGeodesicPolyhedron(divisions)) { }
 
-SphereWorld::SphereWorld(std::tuple<std::vector<glm::fvec3>, std::vector<SphereWorld::Triangle>> pointsAndTriangles) :
+SphereWorld::SphereWorld(
+	std::tuple<std::vector<glm::fvec3>, std::vector<SphereWorld::Triangle>> pointsAndTriangles) :
 	points(std::get<0>(pointsAndTriangles)),
 	triangles(std::get<1>(pointsAndTriangles))
-{}
+{ }
 
-std::tuple<std::vector<glm::fvec3>, std::vector<SphereWorld::Triangle>> SphereWorld::CreateGeodesicPolyhedron(u32 divisions)
+std::tuple<std::vector<glm::fvec3>, std::vector<SphereWorld::Triangle>>
+SphereWorld::CreateGeodesicPolyhedron(u32 divisions)
 {
 	std::vector<glm::fvec3> points = {
 		{1.0_f32, 0.0_f32, 0.0_f32},
@@ -33,18 +33,9 @@ std::tuple<std::vector<glm::fvec3>, std::vector<SphereWorld::Triangle>> SphereWo
 		{0.0_f32, 1.0_f32, 0.0_f32},
 		{0.0_f32, -1.0_f32, 0.0_f32},
 		{0.0_f32, 0.0_f32, 1.0_f32},
-		{0.0_f32, 0.0_f32, -1.0_f32}
-	};
+		{0.0_f32, 0.0_f32, -1.0_f32}};
 	std::vector<SphereWorld::Triangle> triangles = {
-		{0, 2, 4},
-		{0, 4, 3},
-		{0, 3, 5},
-		{0, 5, 2},
-		{1, 4, 2},
-		{1, 3, 4},
-		{1, 5, 3},
-		{1, 2, 5}
-	};
+		{0, 2, 4}, {0, 4, 3}, {0, 3, 5}, {0, 5, 2}, {1, 4, 2}, {1, 3, 4}, {1, 5, 3}, {1, 2, 5}};
 
 	for (u32 i = 0; i < divisions; ++i)
 	{
@@ -61,7 +52,8 @@ std::tuple<std::vector<glm::fvec3>, std::vector<SphereWorld::Triangle>> SphereWo
 	return {points, triangles};
 }
 
-std::tuple<std::vector<glm::fvec3>, std::vector<SphereWorld::Triangle>> SphereWorld::SubDivide(std::vector<glm::fvec3> const& points, std::vector<Triangle> const& triangles)
+std::tuple<std::vector<glm::fvec3>, std::vector<SphereWorld::Triangle>> SphereWorld::SubDivide(
+	std::vector<glm::fvec3> const& points, std::vector<Triangle> const& triangles)
 {
 	std::vector<glm::fvec3> new_points = points;
 	// points in between two original points. (smallest original, largest original) -> new point
@@ -72,12 +64,16 @@ std::tuple<std::vector<glm::fvec3>, std::vector<SphereWorld::Triangle>> SphereWo
 	{
 		// create new points
 		u32 point12index;
-		auto point12find = points_inbetween.find(std::make_tuple(std::min(triangle.index1, triangle.index2), std::max(triangle.index1, triangle.index2)));
+		auto point12find = points_inbetween.find(std::make_tuple(
+			std::min(triangle.index1, triangle.index2),
+			std::max(triangle.index1, triangle.index2)));
 		if (point12find == points_inbetween.end())
 		{
-			new_points.emplace_back(glm::normalize(points[triangle.index1] + points[triangle.index2]));
+			new_points.emplace_back(
+				glm::normalize(points[triangle.index1] + points[triangle.index2]));
 			point12index = new_points.size() - 1;
-			points_inbetween.emplace(std::make_pair(std::make_tuple(triangle.index1, triangle.index2), point12index));
+			points_inbetween.emplace(
+				std::make_pair(std::make_tuple(triangle.index1, triangle.index2), point12index));
 		}
 		else
 		{
@@ -85,12 +81,16 @@ std::tuple<std::vector<glm::fvec3>, std::vector<SphereWorld::Triangle>> SphereWo
 		}
 
 		u32 point13index;
-		auto point13find = points_inbetween.find(std::make_tuple(std::min(triangle.index1, triangle.index3), std::max(triangle.index1, triangle.index3)));
+		auto point13find = points_inbetween.find(std::make_tuple(
+			std::min(triangle.index1, triangle.index3),
+			std::max(triangle.index1, triangle.index3)));
 		if (point13find == points_inbetween.end())
 		{
-			new_points.emplace_back(glm::normalize(points[triangle.index1] + points[triangle.index3]));
+			new_points.emplace_back(
+				glm::normalize(points[triangle.index1] + points[triangle.index3]));
 			point13index = new_points.size() - 1;
-			points_inbetween.emplace(std::make_pair(std::make_tuple(triangle.index1, triangle.index3), point13index));
+			points_inbetween.emplace(
+				std::make_pair(std::make_tuple(triangle.index1, triangle.index3), point13index));
 		}
 		else
 		{
@@ -98,12 +98,16 @@ std::tuple<std::vector<glm::fvec3>, std::vector<SphereWorld::Triangle>> SphereWo
 		}
 
 		u32 point23index;
-		auto point23find = points_inbetween.find(std::make_tuple(std::min(triangle.index2, triangle.index3), std::max(triangle.index2, triangle.index3)));
+		auto point23find = points_inbetween.find(std::make_tuple(
+			std::min(triangle.index2, triangle.index3),
+			std::max(triangle.index2, triangle.index3)));
 		if (point23find == points_inbetween.end())
 		{
-			new_points.emplace_back(glm::normalize(points[triangle.index2] + points[triangle.index3]));
+			new_points.emplace_back(
+				glm::normalize(points[triangle.index2] + points[triangle.index3]));
 			point23index = new_points.size() - 1;
-			points_inbetween.emplace(std::make_pair(std::make_tuple(triangle.index2, triangle.index3), point23index));
+			points_inbetween.emplace(
+				std::make_pair(std::make_tuple(triangle.index2, triangle.index3), point23index));
 		}
 		else
 		{
@@ -111,9 +115,12 @@ std::tuple<std::vector<glm::fvec3>, std::vector<SphereWorld::Triangle>> SphereWo
 		}
 
 		// create new triangles
-		new_triangles.emplace_back(SphereWorld::Triangle(triangle.index1, point12index, point13index));
-		new_triangles.emplace_back(SphereWorld::Triangle(point12index, triangle.index2, point23index));
-		new_triangles.emplace_back(SphereWorld::Triangle(point13index, point23index, triangle.index3));
+		new_triangles.emplace_back(
+			SphereWorld::Triangle(triangle.index1, point12index, point13index));
+		new_triangles.emplace_back(
+			SphereWorld::Triangle(point12index, triangle.index2, point23index));
+		new_triangles.emplace_back(
+			SphereWorld::Triangle(point13index, point23index, triangle.index3));
 		new_triangles.emplace_back(SphereWorld::Triangle(point12index, point23index, point13index));
 	}
 
@@ -145,11 +152,11 @@ glm::fvec3 SphereWorld::GetNormal(glm::fvec3 const& position) const
 		p1 = glm::cross(normpos, glm::fvec3(1.0_f32, 0.0_f32, 0.0_f32));
 	}
 	glm::fvec3 p2 = glm::cross(normpos, p1);
-	
+
 	// make those normalized positions
 	p1 = glm::normalize(normpos + p1 * delta);
 	p2 = glm::normalize(normpos + p2 * delta);
-	
+
 	// find height of these positions
 	p1 += GetHeight(p1) * p1;
 	p2 += GetHeight(p2) * p2;

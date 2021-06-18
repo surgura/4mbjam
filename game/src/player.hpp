@@ -2,8 +2,8 @@
 
 #include <glm/glm.hpp>
 
-#include "types.hpp"
 #include "sphere_world.hpp"
+#include "types.hpp"
 
 namespace Mb4
 {
@@ -18,10 +18,11 @@ public:
 	f32 updownangle = 0.0_f32;
 
 	Player(glm::fvec3 position, glm::fvec3 forward);
-	void Update(f32 deltatime, f32 gravity_strenght, SphereWorld const& world, glm::fvec2 mouse_movement);
-	
+	void Update(
+		f32 deltatime, f32 gravity_strenght, SphereWorld const& world, glm::fvec2 mouse_movement);
+
 	glm::fvec3 GetRotatedForward();
 	glm::fvec3 GetRotatedUp();
 };
 
-}
+} // namespace Mb4

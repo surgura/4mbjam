@@ -1,73 +1,93 @@
 #pragma once
 
+#include <atomic>
 #include <cstdint>
 #include <functional>
 #include <iostream>
-#include <type_traits>
 #include <string>
-
-
+#include <type_traits>
 
 namespace LSystem
 {
 
-	template<typename Type>
-	struct Identifier
+template <typename Type>
+struct Identifier
+{
+	static_assert(std::is_same_v<Type, std::remove_cv_t<Type>>);
+
+	static Identifier Generate()
 	{
-		static_assert(std::is_same_v<Type, std::remove_cv_t<Type>>);
+		extern std::atomic_uint64_t lsystem_detail_next_id;
+		return Identifier(lsystem_detail_next_id.fetch_add(1, std::memory_order_relaxed));
+	}
 
-		static Identifier Generate()
-		{
-			extern std::atomic_uint64_t lsystem_detail_next_id;
-			return Identifier(lsystem_detail_next_id.fetch_add(1, std::memory_order_relaxed));
-		}
+	explicit Identifier(std::uint64_t id) : m_id(id) { }
 
-		explicit Identifier(std::uint64_t id) : m_id(id) { }
+	Identifier() = default;
+	Identifier(const Identifier&) = default;
+	Identifier& operator=(const Identifier&) = default;
 
-		Identifier() = default;
-		Identifier(const Identifier&) = default;
-		Identifier& operator=(const Identifier&) = default;
+	bool operator==(Identifier rhs) const
+	{
+		return m_id == rhs.m_id;
+	}
+	bool operator!=(Identifier rhs) const
+	{
+		return m_id != rhs.m_id;
+	}
+	bool operator<(Identifier rhs) const
+	{
+		return m_id < rhs.m_id;
+	}
+	bool operator>(Identifier rhs) const
+	{
+		return m_id > rhs.m_id;
+	}
+	bool operator<=(Identifier rhs) const
+	{
+		return m_id <= rhs.m_id;
+	}
+	bool operator>=(Identifier rhs) const
+	{
+		return m_id >= rhs.m_id;
+	}
 
-		bool operator==(Identifier rhs) const { return m_id == rhs.m_id; }
-		bool operator!=(Identifier rhs) const { return m_id != rhs.m_id; }
-		bool operator<(Identifier rhs) const { return m_id < rhs.m_id; }
-		bool operator>(Identifier rhs) const { return m_id > rhs.m_id; }
-		bool operator<=(Identifier rhs) const { return m_id <= rhs.m_id; }
-		bool operator>=(Identifier rhs) const { return m_id >= rhs.m_id; }
+	explicit operator std::uint64_t() const
+	{
+		return m_id;
+	}
 
-		explicit operator std::uint64_t() const { return m_id; }
+	operator bool() const
+	{
+		return m_id != 0;
+	}
 
-		operator bool() const { return m_id != 0; }
+private:
+	std::uint64_t m_id = 0;
 
-	private:
+public:
+	template <class Archive>
+	void serialize(Archive& archive)
+	{
+		archive(m_id);
+	}
+};
 
-		std::uint64_t m_id = 0;
-
-	public:
-
-		template<class Archive>
-		void serialize(Archive& archive)
-		{
-			archive(m_id);
-		}
-
-	};
-
-}
+} // namespace LSystem
 
 namespace std
 {
-	template<typename Type>
-	struct hash<LSystem::Identifier<Type>>
+template <typename Type>
+struct hash<LSystem::Identifier<Type>>
+{
+	std::size_t operator()(const LSystem::Identifier<Type>& id) const noexcept
 	{
-		std::size_t operator()(const LSystem::Identifier<Type>& id) const noexcept
-		{
-			return hash<std::uint64_t>()(static_cast<std::uint64_t>(id));
-		}
-	};
-}
+		return hash<std::uint64_t>()(static_cast<std::uint64_t>(id));
+	}
+};
+} // namespace std
 
-template<typename Type>
+template <typename Type>
 std::ostream& operator<<(std::ostream& os, LSystem::Identifier<Type> const& id)
 {
 	return os << "<" << static_cast<std::uint64_t>(id) << ">";

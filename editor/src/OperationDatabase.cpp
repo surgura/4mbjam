@@ -4,7 +4,6 @@
 
 #include "OperationDatabase.hpp"
 
-
 static uint64_t unique_id = 123432;
 
 void OperationDatabase::Update(LSystem::Plant* plant)
@@ -44,17 +43,21 @@ void OperationDatabase::Update(LSystem::Plant* plant)
 		{
 			std::uint64_t operation_id = ++unique_id;
 			std::vector<std::uint64_t> input_ids;
-			for (int i = 0; i < op->GetInfo().input_count; ++i) input_ids.push_back(++unique_id);
+			for (int i = 0; i < op->GetInfo().input_count; ++i)
+				input_ids.push_back(++unique_id);
 			std::vector<std::uint64_t> output_ids;
-			for (int i = 0; i < op->GetInfo().output_count; ++i) output_ids.push_back(++unique_id);
+			for (int i = 0; i < op->GetInfo().output_count; ++i)
+				output_ids.push_back(++unique_id);
 
-			m_operations.emplace(op->GetID(), OperationIDs{ op->GetID(), operation_id, input_ids, output_ids });
+			m_operations.emplace(
+				op->GetID(), OperationIDs{op->GetID(), operation_id, input_ids, output_ids});
 		}
 	}
 
 	/////////   Connections:      ///////////////
 
-	std::unordered_set<LSystem::Connection> connections{ plant->Connections().begin(), plant->Connections().end() };
+	std::unordered_set<LSystem::Connection> connections{
+		plant->Connections().begin(), plant->Connections().end()};
 
 	// Delete all connections that no longer exist:
 
@@ -79,7 +82,7 @@ void OperationDatabase::Update(LSystem::Plant* plant)
 	{
 		if (m_connections.count(con) == 0)
 		{
-			m_connections.emplace(con, ConnectionIDs{ con, ++unique_id });
+			m_connections.emplace(con, ConnectionIDs{con, ++unique_id});
 		}
 	}
 }
@@ -93,7 +96,8 @@ std::uint64_t OperationDatabase::GetOperationID(LSystem::Identifier<LSystem::Ope
 	return 0;
 }
 
-std::uint64_t OperationDatabase::GetInputID(LSystem::Identifier<LSystem::Operation> op, int index) const
+std::uint64_t
+OperationDatabase::GetInputID(LSystem::Identifier<LSystem::Operation> op, int index) const
 {
 	if (m_operations.count(op))
 	{
@@ -105,7 +109,8 @@ std::uint64_t OperationDatabase::GetInputID(LSystem::Identifier<LSystem::Operati
 	return 0;
 }
 
-std::uint64_t OperationDatabase::GetOutputID(LSystem::Identifier<LSystem::Operation> op, int index) const
+std::uint64_t
+OperationDatabase::GetOutputID(LSystem::Identifier<LSystem::Operation> op, int index) const
 {
 	if (m_operations.count(op))
 	{
@@ -138,7 +143,8 @@ LSystem::Identifier<LSystem::Operation> OperationDatabase::GetOperation(std::uin
 	return {};
 }
 
-std::pair<LSystem::Identifier<LSystem::Operation>, int> OperationDatabase::GetInput(std::uint64_t id) const
+std::pair<LSystem::Identifier<LSystem::Operation>, int>
+OperationDatabase::GetInput(std::uint64_t id) const
 {
 	for (auto& [op, ids] : m_operations)
 	{
@@ -146,14 +152,15 @@ std::pair<LSystem::Identifier<LSystem::Operation>, int> OperationDatabase::GetIn
 		{
 			if (ids.input_ids[i] == id)
 			{
-				return { op, i };
+				return {op, i};
 			}
 		}
 	}
-	return { {}, -1 };
+	return {{}, -1};
 }
 
-std::pair<LSystem::Identifier<LSystem::Operation>, int> OperationDatabase::GetOutput(std::uint64_t id) const
+std::pair<LSystem::Identifier<LSystem::Operation>, int>
+OperationDatabase::GetOutput(std::uint64_t id) const
 {
 	for (auto& [op, ids] : m_operations)
 	{
@@ -161,11 +168,11 @@ std::pair<LSystem::Identifier<LSystem::Operation>, int> OperationDatabase::GetOu
 		{
 			if (ids.output_ids[i] == id)
 			{
-				return { op, i };
+				return {op, i};
 			}
 		}
 	}
-	return { {}, -1 };
+	return {{}, -1};
 }
 
 LSystem::Connection OperationDatabase::GetConnection(std::uint64_t id) const
@@ -180,7 +187,6 @@ LSystem::Connection OperationDatabase::GetConnection(std::uint64_t id) const
 	return LSystem::Connection();
 }
 
-
 bool OperationDatabase::IsOperationID(std::uint64_t id) const
 {
 	return GetOperation(id) != LSystem::Identifier<LSystem::Operation>();
@@ -188,12 +194,12 @@ bool OperationDatabase::IsOperationID(std::uint64_t id) const
 
 bool OperationDatabase::IsInputID(std::uint64_t id) const
 {
-	return GetInput(id) != std::pair{ LSystem::Identifier<LSystem::Operation>(), -1 };
+	return GetInput(id) != std::pair{LSystem::Identifier<LSystem::Operation>(), -1};
 }
 
 bool OperationDatabase::IsOutputID(std::uint64_t id) const
 {
-	return GetOutput(id) != std::pair{ LSystem::Identifier<LSystem::Operation>(), -1 };
+	return GetOutput(id) != std::pair{LSystem::Identifier<LSystem::Operation>(), -1};
 }
 
 bool OperationDatabase::IsConnectionID(std::uint64_t id) const

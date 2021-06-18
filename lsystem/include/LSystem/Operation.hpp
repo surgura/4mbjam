@@ -21,58 +21,61 @@
 #include <cereal/access.hpp>
 #include <cereal/types/polymorphic.hpp>
 
-
-
 namespace LSystem
 {
 
-	struct OperationInfo
+struct OperationInfo
+{
+	int input_count;
+	int output_count;
+	std::string description;
+
+	template <class Archive>
+	void serialize(Archive& archive)
 	{
-		int input_count;
-		int output_count;
-		std::string description;
+		archive(input_count, output_count, description);
+	}
+};
 
-		template<class Archive>
-		void serialize(Archive& archive)
-		{
-			archive(input_count, output_count, description);
-		}
-	};
+struct Operation : ParameterOwner
+{
+	Operation(const OperationInfo& info);
 
-	struct Operation : ParameterOwner
+	virtual ~Operation() = default;
+
+	const OperationInfo& GetInfo() const;
+	Identifier<Operation> GetID() const;
+
+	// Called by plant, when executing "Return" output using ActivateOutput function.
+	virtual void Execute(
+		int active_input_index,
+		const std::vector<Instruction*>& active_input_values,
+		InstructionPool& lsystem,
+		Plant* plant) = 0;
+
+	virtual void ResetState() { }
+
+	template <class Archive>
+	void serialize(Archive& archive)
 	{
-		Operation(const OperationInfo& info);
+		archive(m_info, m_id);
+	}
 
-		virtual ~Operation() = default;
+protected:
+	// Can call back into plant
+	void ActivateOutput(
+		int output_index,
+		const std::vector<Instruction*>& output_values,
+		InstructionPool& lsystem,
+		Plant* plant);
 
-		const OperationInfo& GetInfo() const;
-		Identifier<Operation> GetID() const;
+private:
+	friend class cereal::access;
 
-		// Called by plant, when executing "Return" output using ActivateOutput function.
-		virtual void Execute(int active_input_index, const std::vector<Instruction*>& active_input_values, InstructionPool& lsystem, Plant* plant) = 0;
+	Operation() = default;
 
-		virtual void ResetState() { }
+	OperationInfo m_info;
+	Identifier<Operation> m_id;
+};
 
-		template<class Archive>
-		void serialize(Archive& archive)
-		{
-			archive(m_info, m_id);
-		}
-
-	protected:
-
-		// Can call back into plant
-		void ActivateOutput(int output_index, const std::vector<Instruction*>& output_values, InstructionPool& lsystem, Plant* plant);
-
-	private:
-		
-		friend class cereal::access;
-
-		Operation() = default;
-
-		OperationInfo m_info;
-		Identifier<Operation> m_id;
-
-	};
-
-}
+} // namespace LSystem

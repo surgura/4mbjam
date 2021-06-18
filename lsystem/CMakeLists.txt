@@ -84,4 +84,4 @@ target_link_libraries(${PROJECT_NAME} PUBLIC cereal)
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC GLM_ENABLE_EXPERIMENTAL)
 
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)

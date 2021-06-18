@@ -2,24 +2,26 @@
 
 #include <LSystem/Operation.hpp>
 
-
-
 namespace LSystem
 {
 
-	struct ColoringOperation : Operation, NoCopy, NoMove
+struct ColoringOperation : Operation, NoCopy, NoMove
+{
+	ColoringOperation();
+
+	ColorParameter color{"Color", glm::vec3(1, 1, 1)};
+
+	void Execute(
+		int active_input_index,
+		const std::vector<Instruction*>& active_input_values,
+		InstructionPool& lsystem,
+		Plant* plant) override;
+
+	template <class Archive>
+	void serialize(Archive& archive)
 	{
-		ColoringOperation();
+		archive(cereal::base_class<Operation>(this), color);
+	}
+};
 
-		ColorParameter color{ "Color", glm::vec3(1, 1, 1) };
-
-		void Execute(int active_input_index, const std::vector<Instruction*>& active_input_values, InstructionPool& lsystem, Plant* plant) override;
-
-		template<class Archive>
-		void serialize(Archive& archive)
-		{
-			archive(cereal::base_class<Operation>(this), color);
-		}
-	};
-
-}
+} // namespace LSystem

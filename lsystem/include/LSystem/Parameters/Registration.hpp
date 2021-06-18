@@ -7,8 +7,6 @@
 #include <LSystem/Parameters/FloatParameter.hpp>
 #include <LSystem/Parameters/IntParameter.hpp>
 
-
-
 CEREAL_REGISTER_TYPE(LSystem::BoolParameter);
 CEREAL_REGISTER_POLYMORPHIC_RELATION(LSystem::Parameter, LSystem::BoolParameter)
 
