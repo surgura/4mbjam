@@ -7,13 +7,19 @@
 namespace LSystem
 {
 
-	struct ColoringOperation: Operation
+	struct ColoringOperation : Operation, NoCopy, NoMove
 	{
-		ColoringOperation(OperationOwner* owner, std::string_view name);
+		ColoringOperation();
 
-		ColorParameter color{ this, "Color", glm::vec3(1, 1, 1) };
+		ColorParameter color{ "Color", glm::vec3(1, 1, 1) };
 
-		std::vector<Instruction*> Apply(const std::vector<Instruction*>& apply_to, LSystem& lsystem) override;
+		void Execute(int active_input_index, const std::vector<Instruction*>& active_input_values, InstructionPool& lsystem, Plant* plant) override;
+
+		template<class Archive>
+		void serialize(Archive& archive)
+		{
+			archive(cereal::base_class<Operation>(this), color);
+		}
 	};
 
 }

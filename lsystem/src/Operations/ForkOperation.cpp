@@ -1,11 +1,11 @@
-#include <LSystem/LSystem.hpp>
+#include <LSystem/Operations/ForkOperation.hpp>
 
 
 
 namespace LSystem
 {
 
-    std::vector<Instruction*> CreateFork(LSystem& lsystem, int count, float length, float spread, float roll)
+    std::vector<Instruction*> CreateFork(InstructionPool& lsystem, int count, float length, float spread, float roll)
     {
         std::vector<Instruction*> instructions;
 
@@ -25,21 +25,24 @@ namespace LSystem
     }
 
 
-    ForkOperation::ForkOperation(OperationOwner* owner, std::string_view name)
-        : Operation(owner, name)
+    ForkOperation::ForkOperation()
+        : Operation({ 1, 1, "Create Fork" })
     {
-
+        AddParameter(branch_count);
+        AddParameter(branch_length);
+        AddParameter(spread);
+        AddParameter(roll);
     }
 
-    std::vector<Instruction*> ForkOperation::Apply(const std::vector<Instruction*>& apply_to, LSystem& lsystem)
+    void ForkOperation::Execute(int active_input_index, const std::vector<Instruction*>& active_input_values, InstructionPool& lsystem, Plant* plant)
     {
         std::vector<Instruction*> instructions;
 
         if (branch_count > 0)
         {
-            instructions.reserve(apply_to.size() * branch_count);
+            instructions.reserve(active_input_values.size() * branch_count);
 
-            for (auto onto : apply_to)
+            for (auto onto : active_input_values)
             {
                 auto new_instructions = CreateFork(lsystem, branch_count, branch_length, spread, roll);
                 onto->data->children.insert(onto->data->children.end(), new_instructions.begin(), new_instructions.end());
@@ -47,7 +50,7 @@ namespace LSystem
             }
         }
 
-        return instructions;
+        ActivateOutput(0, instructions, lsystem, plant);
     }
 
 }

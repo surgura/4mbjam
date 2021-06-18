@@ -1,11 +1,11 @@
-#include <LSystem/LSystem.hpp>
+#include <LSystem/Operations/PhyllotaxisOperation.hpp>
 
 
 
 namespace LSystem
 {
 
-    std::vector<Instruction*> CreatePhyllotaxis(LSystem& lsystem, int count, float length, float spread, float roll)
+    std::vector<Instruction*> CreatePhyllotaxis(InstructionPool& lsystem, int count, float length, float spread, float roll)
     {
         std::vector<Instruction*> instructions;
 
@@ -25,21 +25,24 @@ namespace LSystem
         return instructions;
     }
 
-    PhyllotaxisOperation::PhyllotaxisOperation(OperationOwner* owner, std::string_view name)
-        : Operation(owner, name)
+    PhyllotaxisOperation::PhyllotaxisOperation()
+        : Operation({ 1, 1, "Create Phyllotaxis" })
     {
-
+        AddParameter(branch_count);
+        AddParameter(branch_length);
+        AddParameter(spread);
+        AddParameter(roll);
     }
 
-    std::vector<Instruction*> PhyllotaxisOperation::Apply(const std::vector<Instruction*>& apply_to, LSystem& lsystem)
+    void PhyllotaxisOperation::Execute(int active_input_index, const std::vector<Instruction*>& active_input_values, InstructionPool& lsystem, Plant* plant)
     {
         std::vector<Instruction*> instructions;
 
         if (branch_count > 0)
         {
-            instructions.reserve(apply_to.size() * branch_count);
+            instructions.reserve(active_input_values.size() * branch_count);
 
-            for (auto onto : apply_to)
+            for (auto onto : active_input_values)
             {
                 auto new_instructions = CreatePhyllotaxis(lsystem, branch_count, branch_length, spread, roll);
                 onto->data->children.insert(onto->data->children.end(), new_instructions.begin(), new_instructions.end());
@@ -47,7 +50,7 @@ namespace LSystem
             }
         }
 
-        return instructions;
+        ActivateOutput(0, instructions, lsystem, plant);
     }
 
 }

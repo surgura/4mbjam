@@ -1,25 +1,27 @@
-#include <LSystem/LSystem.hpp>
+#include <LSystem/Operations/ExtrudeOperation.hpp>
 
 
 
 namespace LSystem
 {
 
-    ExtrudeOperation::ExtrudeOperation(OperationOwner* owner, std::string_view name)
-        : Operation(owner, name)
+    ExtrudeOperation::ExtrudeOperation()
+        : Operation({ 1, 1, "Create Extrusion" })
     {
-
+        AddParameter(branch_length);
+        AddParameter(roll);
+        AddParameter(pitch);
     }
 
-    std::vector<Instruction*> ExtrudeOperation::Apply(const std::vector<Instruction*>& apply_to, LSystem& lsystem)
+    void ExtrudeOperation::Execute(int active_input_index, const std::vector<Instruction*>& active_input_values, InstructionPool& lsystem, Plant* plant)
     {
         std::vector<Instruction*> instructions;
 
-        if (apply_to.size() > 0)
+        if (active_input_values.size() > 0)
         {
-            instructions.reserve(apply_to.size());
+            instructions.reserve(active_input_values.size());
 
-            for (auto onto : apply_to)
+            for (auto onto : active_input_values)
             {
                 auto new_instruction = lsystem.CreateExtrusion(branch_length, roll, pitch);
                 onto->data->children.push_back(new_instruction);
@@ -27,7 +29,7 @@ namespace LSystem
             }
         }
 
-        return instructions;
+        ActivateOutput(0, instructions, lsystem, plant);
     }
 
 }

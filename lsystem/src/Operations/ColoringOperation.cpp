@@ -1,23 +1,22 @@
-#include <LSystem/LSystem.hpp>
+#include <LSystem/Operations/ColoringOperation.hpp>
 
 
 
 namespace LSystem
 {
 
-	ColoringOperation::ColoringOperation(OperationOwner* owner, std::string_view name)
-		: Operation(owner, name)
+	ColoringOperation::ColoringOperation()
+		: Operation({ 1, 0, "Apply Color" })
 	{
-
+		AddParameter(color);
 	}
 
-	std::vector<Instruction*> ColoringOperation::Apply(const std::vector<Instruction*>& apply_to, LSystem& lsystem)
+	void ColoringOperation::Execute(int active_input_index, const std::vector<Instruction*>& active_input_values, InstructionPool& lsystem, Plant* plant)
 	{
-		for (auto& i : apply_to)
+		for (auto& i : active_input_values)
 		{
 			i->data->branch_color = color;
 		}
-		return {};
 	}
 
 }

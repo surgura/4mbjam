@@ -7,16 +7,22 @@
 namespace LSystem
 {
 
-	struct FanOperation : Operation
+	struct FanOperation : Operation, NoCopy, NoMove
 	{
-		FanOperation(OperationOwner* owner, std::string_view name);
+		FanOperation();
 
-		IntParameter branch_count{ this, "Branch Count", 0, 255, 9 };
-		FloatParameter branch_length{ this, "Branch Length", 0, 10, 0.5 };
-		FloatParameter spread{ this, "Spread", 0, 360, 120 };
-		FloatParameter roll{ this, "Roll", 0, 360, 0 };
+		IntParameter branch_count{ "Count", 0, 255, 9 };
+		FloatParameter branch_length{ "Length", 0, 10, 0.5 };
+		FloatParameter spread{ "Spread", 0, 360, 120 };
+		FloatParameter roll{ "Roll", 0, 360, 0 };
 
-		std::vector<Instruction*> Apply(const std::vector<Instruction*>& apply_to, LSystem& lsystem) override;
+		void Execute(int active_input_index, const std::vector<Instruction*>& active_input_values, InstructionPool& lsystem, Plant* plant) override;
+
+		template<class Archive>
+		void serialize(Archive& archive)
+		{
+			archive(cereal::base_class<Operation>(this), branch_count, branch_length, spread, roll);
+		}
 	};
 
 }

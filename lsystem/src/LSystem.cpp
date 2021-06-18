@@ -10,12 +10,102 @@
 namespace LSystem
 {
 
+    struct CascadingState
+    {
+        glm::vec3 branch_color = glm::vec3(102.0 / 255, 51.0 / 255, 0);
+        int branch_sides = 1;
+        float branch_radius = 0.05;
+        float branch_radius_change = 1;
+        float scale = 1;
+        float scale_change = 1;
+    };
+
+    void UpdateCascadingState(const Instruction* instruction, CascadingState& cascading_state)
+    {
+        // Update color
+        if (instruction->data->branch_color.has_value())
+        {
+            cascading_state.branch_color = instruction->data->branch_color.value();
+        }
+
+        // Update sides
+        if (instruction->data->branch_sides.has_value())
+        {
+            cascading_state.branch_sides = instruction->data->branch_sides.value();
+        }
+
+        // Update Radius
+        if (instruction->data->branch_radius_change.has_value())
+        {
+            cascading_state.branch_radius_change = instruction->data->branch_radius_change.value();
+        }
+        if (instruction->data->branch_radius.has_value())
+        {
+            cascading_state.branch_radius = instruction->data->branch_radius.value();
+        }
+        else
+        {
+            cascading_state.branch_radius *= cascading_state.branch_radius_change;
+        }
+
+        // Update scale
+        if (instruction->data->scale_change.has_value())
+        {
+            cascading_state.scale_change = instruction->data->scale_change.value();
+        }
+        if (instruction->data->scale.has_value())
+        {
+            cascading_state.scale = instruction->data->scale.value();
+        }
+        else
+        {
+            cascading_state.scale *= cascading_state.scale_change;
+        }
+    }
+
+    std::vector<glm::vec4> MakeCircle(int sides, float radius)
+    {
+        std::vector<glm::vec4> circle;
+
+        if (sides > 0)
+        {
+            circle.resize(sides, glm::vec4(0, 0, 0, 1));
+
+            if (sides > 1)
+            {
+                const auto angle_increment = glm::two_pi<float>() / sides;
+
+                for (int i = 0; i < sides; ++i)
+                {
+                    circle[i].x = radius * glm::cos(i * angle_increment);
+                    circle[i].z = radius * glm::sin(i * angle_increment);
+                }
+            }
+        }
+
+        return circle;
+    }
+
+    std::vector<glm::vec4> TransformCircle(const std::vector<glm::vec4>& circle, const glm::mat4& transform)
+    {
+        std::vector<glm::vec4> transformed_circle;
+        transformed_circle.reserve(circle.size());
+
+        for (auto& pt : circle)
+        {
+            transformed_circle.push_back(transform * pt);
+        }
+
+        return transformed_circle;
+    }
+
+
 	// TODO: optimize away lines of size 0
 
 	static void ExecuteInstruction(
         const Instruction* instruction, 
         const glm::mat4& parent_space, 
-        const glm::vec3& parent_color,
+        CascadingState cascading_state,
         VertexBuffer& vertex_buffer, 
         int remaining_recursions)
 	{
@@ -25,22 +115,44 @@ namespace LSystem
 			return;
 		}
 
-        auto color = parent_color;
-		auto local_space = parent_space * instruction->transform;
-        auto branch_transform = local_space * instruction->data->transform;
+        UpdateCascadingState(instruction, cascading_state);
 
-        if (instruction->data->branch_color.has_value())
-        {
-            color = instruction->data->branch_color.value();
-        }
+		auto local_space = parent_space * instruction->transform;
+        auto branch_transform = local_space * instruction->data->transform(cascading_state.scale);
 
 		if (instruction->data->draw_branch)
 		{
-			vertex_buffer.lines.emplace_back();
-			vertex_buffer.lines.back().point_a.position = local_space * glm::vec4(0, 0, 0, 1);
-			vertex_buffer.lines.back().point_b.position = branch_transform * glm::vec4(0, 0, 0, 1);
-            vertex_buffer.lines.back().point_a.color = color;
-            vertex_buffer.lines.back().point_b.color = color;
+            if (cascading_state.branch_sides == 1)
+            {
+                vertex_buffer.lines.emplace_back();
+                vertex_buffer.lines.back().point_a.position = local_space * glm::vec4(0, 0, 0, 1);
+                vertex_buffer.lines.back().point_b.position = branch_transform * glm::vec4(0, 0, 0, 1);
+                vertex_buffer.lines.back().point_a.color = cascading_state.branch_color;
+                vertex_buffer.lines.back().point_b.color = cascading_state.branch_color;
+            }
+            else if (cascading_state.branch_sides > 1)
+            {
+                auto circle = MakeCircle(cascading_state.branch_sides, cascading_state.branch_radius);
+                auto circle_a = TransformCircle(circle, local_space);
+                auto circle_b = TransformCircle(circle, branch_transform);
+
+                for (int i = 0; i < cascading_state.branch_sides; ++i)
+                {
+                    int j = i + 1 == cascading_state.branch_sides ? 0 : i + 1; // Take next index or 0 if were at end
+
+                    // Create triangle with two vertices from circle_a and one from circle_b.
+                    auto& tri_1 = vertex_buffer.AddTriangle(circle_a[i], circle_a[j], circle_b[i]);
+                    tri_1.point_1.color = cascading_state.branch_color;
+                    tri_1.point_2.color = cascading_state.branch_color;
+                    tri_1.point_3.color = cascading_state.branch_color;
+
+                    // Create triangle with two vertices from circle_b and one from circle_a, together making a square.
+                    auto& tri_2 = vertex_buffer.AddTriangle(circle_a[j], circle_b[i], circle_b[j]);
+                    tri_2.point_1.color = cascading_state.branch_color;
+                    tri_2.point_2.color = cascading_state.branch_color;
+                    tri_2.point_3.color = cascading_state.branch_color;
+                }
+            }
 		}
 
 		for (const auto& child : instruction->data->children)
@@ -51,23 +163,14 @@ namespace LSystem
 			{
                 if (child->is_recursion)
                 {
-                    ExecuteInstruction(child, branch_transform, color, vertex_buffer, remaining_recursions - 1);
+                    ExecuteInstruction(child, branch_transform, cascading_state, vertex_buffer, remaining_recursions - 1);
                 }
                 else
                 {
-                    ExecuteInstruction(child, branch_transform, color, vertex_buffer, remaining_recursions);
+                    ExecuteInstruction(child, branch_transform, cascading_state, vertex_buffer, remaining_recursions);
                 }
 			}
 		}
-	}
-
-	VertexBuffer Generate(const Instruction* branch, int recursions)
-	{
-		VertexBuffer render_buffer;
-
-		ExecuteInstruction(branch, glm::mat4(1), glm::vec3(1), render_buffer, recursions);
-
-		return render_buffer;
 	}
 
 }
@@ -76,20 +179,20 @@ namespace LSystem
 namespace LSystem
 {
 
-    InstructionData* LSystem::AddInstructionData()
+    InstructionData* InstructionPool::AddInstructionData()
     {
         m_instructionDatas.emplace_back(std::make_unique<InstructionData>());
         return m_instructionDatas.back().get();
     }
 
-    Instruction* LSystem::AddInstruction(InstructionData* data = nullptr)
+    Instruction* InstructionPool::AddInstruction(InstructionData* data = nullptr)
     {
         m_instructions.emplace_back(std::make_unique<Instruction>());
         m_instructions.back()->data = data;
         return m_instructions.back().get();
     }
 
-    Instruction* LSystem::CreateExtrusion(float length, float roll, float pitch)
+    Instruction* InstructionPool::CreateExtrusion(float length, float roll, float pitch)
     {
         auto instruction_data = AddInstructionData();
         auto instruction = AddInstruction(instruction_data);
@@ -98,69 +201,22 @@ namespace LSystem
         const auto pitch_matrix = glm::rotate(roll_matrix, glm::radians(pitch), glm::vec3(1, 0, 0));
         instruction->transform = pitch_matrix;
 
-        instruction_data->transform = glm::translate(glm::mat4(1), glm::vec3(0, length, 0));
+        instruction_data->length = length;
 
         return instruction;
     }
 
-    std::vector<Instruction*> LSystem::CreateBase(float length)
+    VertexBuffer InstructionPool::Generate(int recursions)
     {
-        begin = CreateExtrusion(length, 0, 0);
-        return { begin };
-    }
+        VertexBuffer render_buffer;
+        CascadingState cascading_state;
 
-    /*
-    std::vector<Instruction*> LSystem::CreateRecursion(Instruction* rule, float scale, float roll, float pitch)
-    {
-        std::vector<RuleReference> rule_reference;
-        rule_reference.resize(1);
-
-        const auto roll_matrix = glm::rotate(glm::mat4(1), roll, glm::vec3(0, 1, 0));
-        const auto pitch_matrix = glm::rotate(roll_matrix, pitch, glm::vec3(1, 0, 0));
-        const auto scale_matrix = glm::scale(pitch_matrix, glm::vec3(scale, scale, scale));
-        rule_reference[0].transform = scale_matrix;
-
-        rule_reference[0].rule = rule;
-        return rule_reference;
-    }
-
-    std::vector<Instruction*> LSystem::CreateRecursingFork(Instruction* rule, int count, float scale, float roll, float pitch)
-    {
-        std::vector<RuleReference> rule_references;
-
-        if (count > 0)
+        if (first_instruction)
         {
-            rule_references.reserve(count);
-
-            const float angle_increment = glm::two_pi<float>() / count;
-
-            for (int i = 0; i < count; ++i)
-            {
-                rule_references.push_back(std::move(CreateRecursion(rule, scale, roll + i * angle_increment, pitch)[0]));
-            }
+            ExecuteInstruction(first_instruction, glm::mat4(1), cascading_state, render_buffer, recursions);
         }
 
-        return rule_references;
+        return render_buffer;
     }
 
-    std::vector<Instruction*> LSystem::CreateRecursingFan(Instruction* rule, int count, float spread, float scale, float roll)
-    {
-        std::vector<RuleReference> rule_references;
-
-        if (count > 0)
-        {
-            rule_references.reserve(count);
-
-            const float angle_start = -spread / 2;
-            const float angle_increment = spread / count;
-
-            for (int i = 0; i < count; ++i)
-            {
-                rule_references.push_back(std::move(CreateRecursion(rule, scale, roll, angle_start + i * angle_increment)[0]));
-            }
-        }
-
-        return rule_references;
-    }
-    */
 }

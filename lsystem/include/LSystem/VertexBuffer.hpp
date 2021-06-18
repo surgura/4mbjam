@@ -5,8 +5,10 @@
 #include <glm/glm.hpp>
 
 
+
 namespace LSystem
 {
+
 	struct Vertex
 	{
 		glm::vec3 position;
@@ -32,5 +34,16 @@ namespace LSystem
 	{
 		std::vector<Line> lines;
 		std::vector<Triangle> triangles;
+
+		Triangle& AddTriangle(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c)
+		{
+			triangles.emplace_back();
+			triangles.back().point_1.position = a;
+			triangles.back().point_2.position = b;
+			triangles.back().point_3.position = c;
+			return triangles.back();
+		}
+
 	};
+
 }

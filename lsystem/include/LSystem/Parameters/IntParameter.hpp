@@ -9,7 +9,7 @@ namespace LSystem
 
 	struct IntParameter : Parameter
 	{
-		IntParameter(ParameterOwner* owner, std::string_view name, int min, int max, int value);
+		IntParameter(std::string_view name, int min, int max, int value);
 
 		int min;
 		int max;
@@ -18,6 +18,19 @@ namespace LSystem
 		operator int() const;
 
 		IntParameter& operator=(int value);
+
+		template<class Archive>
+		void serialize(Archive& archive)
+		{
+			archive(min, max, value, m_name);
+		}
+
+	private:
+
+		friend cereal::access;
+
+		IntParameter() = default;
+
 	};
 
 }

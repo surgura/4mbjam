@@ -6,12 +6,12 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
 set(SRC_FILES
   src/main.cpp
+  src/OperationDatabase.cpp
 )
 
 set(HEADER_FILES
-  src/Tree.hpp
+  src/OperationDatabase.hpp
   src/TreeEditWindow.hpp
-  src/Trees.hpp
 )
 
 source_group(Sources FILES ${SRC_FILES} ${HEADER_FILES})

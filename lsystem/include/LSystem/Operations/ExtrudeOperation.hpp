@@ -7,15 +7,21 @@
 namespace LSystem
 {
 
-	struct ExtrudeOperation : Operation
+	struct ExtrudeOperation : Operation, NoCopy, NoMove
 	{
-		ExtrudeOperation(OperationOwner* owner, std::string_view name);
+		ExtrudeOperation();
 
-		FloatParameter branch_length{ this, "Branch Length", 0, 10, 0.5 };
-		FloatParameter roll{ this, "Roll", 0, 360, 0 };
-		FloatParameter pitch{ this, "Pitch", 0, 180, 0 };
+		FloatParameter branch_length{ "Length", 0, 10, 0.5 };
+		FloatParameter roll{ "Roll", 0, 360, 0 };
+		FloatParameter pitch{ "Pitch", 0, 180, 0 };
 
-		std::vector<Instruction*> Apply(const std::vector<Instruction*>& apply_to, LSystem& lsystem) override;
+		void Execute(int active_input_index, const std::vector<Instruction*>& active_input_values, InstructionPool& lsystem, Plant* plant) override;
+
+		template<class Archive>
+		void serialize(Archive& archive)
+		{
+			archive(cereal::base_class<Operation>(this), branch_length, roll, pitch);
+		}
 	};
 
 }

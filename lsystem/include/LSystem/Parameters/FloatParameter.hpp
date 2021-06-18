@@ -9,7 +9,7 @@ namespace LSystem
 
 	struct FloatParameter : Parameter
 	{
-		FloatParameter(ParameterOwner* owner, std::string_view name, float min, float max, float value);
+		FloatParameter(std::string_view name, float min, float max, float value);
 
 		float min;
 		float max;
@@ -18,6 +18,19 @@ namespace LSystem
 		operator float() const;
 
 		FloatParameter& operator=(float value);
+
+		template<class Archive>
+		void serialize(Archive& archive)
+		{
+			archive(min, max, value, m_name);
+		}
+
+	private:
+
+		friend cereal::access;
+
+		FloatParameter() = default;
+
 	};
 
 }
