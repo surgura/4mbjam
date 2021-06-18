@@ -1,10 +1,10 @@
 #pragma once
 
-#include <raymath.h>
 #include "types.hpp"
-#include <iterator>
 #include <glm/glm.hpp>
+#include <iterator>
 #include <optional>
+#include <raymath.h>
 #include <tuple>
 
 namespace Mb4
@@ -24,8 +24,12 @@ public:
  * 
  * first, last iterators to collection of pointers to const Targetables.
  * @return identifier of targeted object, if any. */
-template<typename ConstForwardIterator>
-std::optional<u32> GetTarget(ConstForwardIterator first, ConstForwardIterator last, Vector3 camera_position, Vector3 camera_forward)
+template <typename ConstForwardIterator>
+std::optional<u32> GetTarget(
+	ConstForwardIterator first,
+	ConstForwardIterator last,
+	Vector3 camera_position,
+	Vector3 camera_forward)
 {
 	// stores closest (identifier, collision_point)
 	std::optional<std::tuple<u32, Vector3>> closest;
@@ -42,13 +46,14 @@ std::optional<u32> GetTarget(ConstForwardIterator first, ConstForwardIterator la
 		raylib_position.z = (*first)->position.z;
 
 		Vector3 sphere_collision;
-		bool targeting_sphere = CheckCollisionRaySphereEx(ray, raylib_position, (*first)->sphere_radius, &sphere_collision);
+		bool targeting_sphere = CheckCollisionRaySphereEx(
+			ray, raylib_position, (*first)->sphere_radius, &sphere_collision);
 		if (targeting_sphere)
 		{
-			if (
-				!closest.has_value() ||
-				Vector3LengthSqr(Vector3Subtract(sphere_collision, camera_position)) < Vector3LengthSqr(Vector3Subtract(std::get<1>(closest.value()), camera_position))
-			)
+			if (!closest.has_value() ||
+				Vector3LengthSqr(Vector3Subtract(sphere_collision, camera_position)) <
+					Vector3LengthSqr(
+						Vector3Subtract(std::get<1>(closest.value()), camera_position)))
 			{
 				closest = std::make_tuple((*first)->identifier, sphere_collision);
 			}
@@ -57,10 +62,10 @@ std::optional<u32> GetTarget(ConstForwardIterator first, ConstForwardIterator la
 
 	if (closest.has_value())
 	{
-		return { std::get<0>(closest.value()) };
+		return {std::get<0>(closest.value())};
 	}
 
 	return {};
 }
 
-}
+} // namespace Mb4

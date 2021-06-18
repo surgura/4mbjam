@@ -1,12 +1,12 @@
 #include "player.hpp"
 #include "debug.hpp"
-#include <string>
+#include <algorithm>
 #include <cmath>
-#include <glm/gtc/noise.hpp>
-#include <raylib.h>
 #include <glm/detail/type_quat.hpp>
 #include <glm/ext/quaternion_trigonometric.hpp>
-#include <algorithm>
+#include <glm/gtc/noise.hpp>
+#include <raylib.h>
+#include <string>
 
 using namespace Mb4;
 
@@ -14,9 +14,10 @@ Player::Player(glm::fvec3 position, glm::fvec3 forward) :
 	position(position),
 	velocity({0.0_f32, 0.0_f32, 0.0_f32}),
 	forward(forward)
-{}
+{ }
 
-void Player::Update(f32 deltatime, f32 gravity_strenght, SphereWorld const& world, glm::fvec2 mouse_movement)
+void Player::Update(
+	f32 deltatime, f32 gravity_strenght, SphereWorld const& world, glm::fvec2 mouse_movement)
 {
 	constexpr f32 mouse_speed = 0.5_f32;
 	constexpr f32 jump_velocity = 1.0_f32;
@@ -26,7 +27,9 @@ void Player::Update(f32 deltatime, f32 gravity_strenght, SphereWorld const& worl
 	updownangle = std::clamp(updownangle, -0.5_f32 * PI + 0.1_f32, 0.5_f32 * PI - 0.1_f32);
 
 	// mouse x to rotate
-	forward = glm::angleAxis(-mouse_movement.x * mouse_speed * deltatime, glm::normalize(position)) * forward;
+	forward =
+		glm::angleAxis(-mouse_movement.x * mouse_speed * deltatime, glm::normalize(position)) *
+		forward;
 
 	// apply movement acceleration
 	f32 current_height = world.GetHeight(position);
@@ -54,7 +57,8 @@ void Player::Update(f32 deltatime, f32 gravity_strenght, SphereWorld const& worl
 	}
 
 	// jump
-	if (IsKeyDown(KEY_SPACE) && glm::distance(current_height, glm::length(position)) < 0.001 && glm::dot(velocity, world.GetNormal(position)) <= 0.0_f32)
+	if (IsKeyDown(KEY_SPACE) && glm::distance(current_height, glm::length(position)) < 0.001 &&
+		glm::dot(velocity, world.GetNormal(position)) <= 0.0_f32)
 	{
 		velocity += jump_velocity * world.GetNormal(position);
 	}
@@ -90,9 +94,10 @@ void Player::Update(f32 deltatime, f32 gravity_strenght, SphereWorld const& worl
 	{
 		new_forward = forward;
 	}
-	
+
 	// snap new_forward to nearest orthogonal verctor with up vector
-	new_forward = glm::cross(glm::cross(glm::normalize(new_position), new_forward), glm::normalize(new_position));
+	new_forward = glm::cross(
+		glm::cross(glm::normalize(new_position), new_forward), glm::normalize(new_position));
 
 	position = new_position;
 	forward = new_forward;

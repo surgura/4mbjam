@@ -4,26 +4,22 @@
 
 #include <LSystem/Forward.hpp>
 
-
-
 namespace LSystem
 {
 
-    struct ParameterOwner
-    {
-        virtual ~ParameterOwner() = default;
+struct ParameterOwner
+{
+	virtual ~ParameterOwner() = default;
 
-        bool AddParameter(Parameter& parameter);
-        bool RemoveParameter(Parameter& parameter);
+	bool AddParameter(Parameter& parameter);
+	bool RemoveParameter(Parameter& parameter);
 
-        const std::vector<Parameter*>& Parameters();
-        const std::vector<const Parameter*>& Parameters() const;
+	const std::vector<Parameter*>& Parameters();
+	const std::vector<const Parameter*>& Parameters() const;
 
-    private:
+private:
+	std::vector<Parameter*> m_parameters;
+	std::vector<const Parameter*> m_const_parameters;
+};
 
-        std::vector<Parameter*> m_parameters;
-        std::vector<const Parameter*> m_const_parameters;
-
-    };
-
-}
+} // namespace LSystem

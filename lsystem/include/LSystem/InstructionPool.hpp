@@ -6,27 +6,23 @@
 #include <LSystem/Forward.hpp>
 #include <LSystem/VertexBuffer.hpp>
 
-
-
 namespace LSystem
 {
 
-	struct InstructionPool
-	{
-		Instruction* first_instruction = nullptr;
+struct InstructionPool
+{
+	Instruction* first_instruction = nullptr;
 
-		Instruction* CreateExtrusion(float length, float roll, float pitch);
+	Instruction* CreateExtrusion(float length, float roll, float pitch);
 
-		VertexBuffer Generate(int recursions); // Start from first_instruction
+	VertexBuffer Generate(int recursions); // Start from first_instruction
 
-	private:
+private:
+	InstructionData* AddInstructionData();
+	Instruction* AddInstruction(InstructionData* data);
 
-		InstructionData* AddInstructionData();
-		Instruction* AddInstruction(InstructionData* data);
+	std::vector<std::unique_ptr<Instruction>> m_instructions;
+	std::vector<std::unique_ptr<InstructionData>> m_instructionDatas;
+};
 
-		std::vector<std::unique_ptr<Instruction>> m_instructions;
-		std::vector<std::unique_ptr<InstructionData>> m_instructionDatas;
-
-	};
-
-}
+} // namespace LSystem

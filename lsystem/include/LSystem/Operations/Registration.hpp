@@ -14,8 +14,6 @@
 #include <LSystem/Operations/ScaleOperation.hpp>
 #include <LSystem/Operations/StartOperation.hpp>
 
-
-
 CEREAL_REGISTER_TYPE(LSystem::ColoringOperation)
 CEREAL_REGISTER_TYPE(LSystem::ExtrudeOperation)
 CEREAL_REGISTER_TYPE(LSystem::FanOperation)

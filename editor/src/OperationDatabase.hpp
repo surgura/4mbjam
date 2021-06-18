@@ -6,13 +6,11 @@
 #include <LSystem/Forward.hpp>
 #include <LSystem/Plant.hpp>
 
-
 class OperationDatabase
 {
 public:
-
 	void Update(LSystem::Plant* plant);
-	
+
 	std::uint64_t GetOperationID(LSystem::Identifier<LSystem::Operation> op) const;
 	std::uint64_t GetInputID(LSystem::Identifier<LSystem::Operation> op, int index) const;
 	std::uint64_t GetOutputID(LSystem::Identifier<LSystem::Operation> op, int index) const;
@@ -29,7 +27,6 @@ public:
 	bool IsConnectionID(std::uint64_t id) const;
 
 private:
-
 	struct OperationIDs
 	{
 		const LSystem::Identifier<LSystem::Operation> operation;
@@ -46,5 +43,4 @@ private:
 
 	std::unordered_map<LSystem::Identifier<LSystem::Operation>, OperationIDs> m_operations;
 	std::unordered_map<LSystem::Connection, ConnectionIDs> m_connections;
-
 };

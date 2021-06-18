@@ -4,33 +4,29 @@
 
 #include <LSystem/Parameter.hpp>
 
-
-
 namespace LSystem
 {
 
-	struct ColorParameter : Parameter
+struct ColorParameter : Parameter
+{
+	ColorParameter(std::string_view name, glm::vec3 value);
+
+	glm::vec3 value;
+
+	operator glm::vec3() const;
+
+	ColorParameter& operator=(const glm::vec3& value);
+
+	template <class Archive>
+	void serialize(Archive& archive)
 	{
-		ColorParameter(std::string_view name, glm::vec3 value);
+		archive(value, m_name);
+	}
 
-		glm::vec3 value;
+private:
+	friend cereal::access;
 
-		operator glm::vec3() const;
-		
-		ColorParameter& operator=(const glm::vec3& value);
+	ColorParameter() = default;
+};
 
-		template<class Archive>
-		void serialize(Archive& archive)
-		{
-			archive(value, m_name);
-		}
-
-	private:
-
-		friend cereal::access;
-
-		ColorParameter() = default;
-
-	};
-
-}
+} // namespace LSystem
